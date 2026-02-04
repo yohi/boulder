@@ -209,11 +209,12 @@ const run = (cmd: string[], cwd = process.cwd()) => {
     const testRun = run(["bun", "test", probeTest]);
     unlinkSync(probeTest);
 
-    if (testRun.exitCode === 0) {
-        console.log("✅ Reflex Check: Test script detected and runner is alive.");
-    } else {
-        console.warn("⚠️ Reflex Check: 'test' script exists but runner failed.");
+    if (testRun.exitCode !== 0) {
+        console.error("❌ Reflex Check: 'test' script exists but runner failed.");
+        console.error(`   -> Log: ${testRun.text}`);
+        process.exit(1);
     }
+    console.log("✅ Reflex Check: Test script detected and runner is alive.");
   } else if (hasBuild) {
      console.log("⚠️ Reflex Check: No 'test' script, but 'build' script detected.");
   } else {
