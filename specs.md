@@ -144,7 +144,7 @@ Windows/Mac/Linux 全対応のため、ワンライナーではなくファイ�
 
 **`scripts/boulder-doctor.ts`**:
 ```typescript
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync, unlinkSync } from "fs";
 import { join } from "path";
 
 console.log("🪨 Project Boulder Doctor Checking...");
@@ -204,7 +204,11 @@ const run = (cmd: string[], cwd = process.cwd()) => {
 
   if (hasTest) {
     // Verify it actually runs
-    const testRun = run(["bun", "test", "--help"]);
+    const probeTest = "boulder-probe.test.ts";
+    writeFileSync(probeTest, "import { test } from 'bun:test'; test('probe', () => {});");
+    const testRun = run(["bun", "test", probeTest]);
+    unlinkSync(probeTest);
+
     if (testRun.exitCode === 0) {
         console.log("✅ Reflex Check: Test script detected and runner is alive.");
     } else {
@@ -236,7 +240,7 @@ bun run scripts/boulder-doctor.ts
 1. **Composer (Cmd+I) を開く。**
 
 2. **対象ファイルをチャットに追加 (`@src/index.ts`)。**
-   * `.cursor/rules/` 配下のルール (`tool-ast-grep.mdc` など) がコンテキストに応じて適用される。
+   * `.cursor/rules/` 配下のルール (`boulder-tool-ast-grep.mdc` など) がコンテキストに応じて適用される。
 
 3. **指示を出す:**
    > 「このバグを修正せよ。検証ログを見せろ。」
