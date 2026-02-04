@@ -2,7 +2,7 @@
 
 **Version:** 1.0.1 (Refined / Based on Momus Review)
 **Codename:** "Push the Rock"
-**Target:** Cursor IDE (Composer / Agent)
+**Target:** Cursor IDE (Composer / Agent) & Claude Code (CLI)
 **Philosophy:** "Immutability, Reproducibility, & Zero-Inference"
 
 ## 1. コンセプト: Project Boulder とは
@@ -134,6 +134,27 @@ bun pm cache rm
 bun install
 ```
 ````
+
+### 3.3 `CLAUDE.md` (The Adapter Layer)
+
+Project Boulder のルールは、Anthropic の CLI ツール "Claude Code" とも完全な互換性を持つ。
+ルートディレクトリに `CLAUDE.md` を配置し、既存の資産（`specs.md` や `.mdc` ルール）をインポートすることで、Cursor と同じ「不屈の精神」を CLI 環境でも再現する。
+
+```markdown
+# Claude Code Rules (Project Boulder Adapter)
+
+## 1. Project Specifications
+- @specs.md
+
+## 2. Cursor Rules (Boulder Laws)
+- @.cursor/rules/boulder-sisyphus.mdc
+- @.cursor/rules/boulder-tool-ast-grep.mdc
+
+## 3. Commands
+- Build: `bun run build`
+- Test: `bun run test`
+- Doctor: `bun run scripts/boulder-doctor.ts`
+```
 
 ## 4. 運用ワークフロー (Pushing the Rock)
 
