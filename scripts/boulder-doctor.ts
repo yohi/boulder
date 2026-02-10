@@ -7,6 +7,9 @@
  * グローバル配置（~/.config/boulder/scripts/boulder-doctor.ts）は将来的に実装予定です。
  */
 
+import { existsSync, lstatSync, readlinkSync, statSync } from "node:fs";
+import { join } from "node:path";
+
 const PREFIX = {
   ok: "[OK]",
   fail: "[FAIL]",
@@ -41,10 +44,6 @@ try {
   hasErrors = true;
 }
 
-// package.jsonの存在確認
-import { existsSync, lstatSync, readlinkSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 if (!existsSync(join(process.cwd(), "package.json"))) {
   console.error(`${PREFIX.fail} package.json not found`);
   hasErrors = true;
@@ -60,18 +59,33 @@ if (!existsSync(join(process.cwd(), "biome.json"))) {
 }
 
 /** @returns true if any symlink check failed */
-function verifySymlinkState(paths: string[]): boolean {
+function verifySymlinkState(
+  paths: string[],
+  requiredSymlinks: Set<string> = new Set(),
+): boolean {
   let failed = false;
   for (const p of paths) {
     const fullPath = join(process.cwd(), p);
+    const isRequired = requiredSymlinks.has(p);
+
     if (!existsSync(fullPath) && !lstatExists(fullPath)) {
-      // パスが存在しない場合はスキップ（他のチェックで検出済み）
+      if (isRequired) {
+        console.error(`${PREFIX.fail} Required symlink missing: ${p}`);
+        failed = true;
+      }
+      // 必須でないパスはスキップ（他のチェックで検出済み）
       continue;
     }
 
     try {
       const lst = lstatSync(fullPath);
       if (!lst.isSymbolicLink()) {
+        if (isRequired) {
+          console.error(
+            `${PREFIX.fail} ${p} exists but is not a symbolic link`,
+          );
+          failed = true;
+        }
         continue;
       }
 
@@ -105,8 +119,9 @@ function lstatExists(p: string): boolean {
   }
 }
 
-const symlinkTargets = ["package.json", "biome.json", "bun", "biome"];
-if (verifySymlinkState(symlinkTargets)) {
+const symlinkTargets = [".cursor/rules"];
+const requiredSymlinks = new Set([".cursor/rules"]);
+if (verifySymlinkState(symlinkTargets, requiredSymlinks)) {
   hasErrors = true;
 }
 
