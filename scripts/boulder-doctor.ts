@@ -7,16 +7,23 @@
  * グローバル配置（~/.config/boulder/scripts/boulder-doctor.ts）は将来的に実装予定です。
  */
 
-console.log("🔍 Boulder Doctor - Environment Check\n");
+const PREFIX = {
+  ok: "[OK]",
+  fail: "[FAIL]",
+  warn: "[WARN]",
+  info: "[INFO]",
+} as const;
+
+console.log(`${PREFIX.info} Boulder Doctor - Environment Check\n`);
 
 let hasErrors = false;
 
 // Bunのバージョン確認
 try {
   const bunVersion = Bun.version;
-  console.log(`✅ Bun: ${bunVersion}`);
+  console.log(`${PREFIX.ok} Bun: ${bunVersion}`);
 } catch (_e) {
-  console.error("❌ Bun runtime check failed");
+  console.error(`${PREFIX.fail} Bun runtime check failed`);
   hasErrors = true;
 }
 
@@ -27,9 +34,9 @@ try {
   if (exitCode !== 0) {
     throw new Error("Biome version check failed");
   }
-  console.log("✅ Biome: installed");
+  console.log(`${PREFIX.ok} Biome: installed`);
 } catch (_e) {
-  console.error("❌ Biome not found or broken");
+  console.error(`${PREFIX.fail} Biome not found or broken`);
   console.error("   → Try: bun add -D @biomejs/biome");
   hasErrors = true;
 }
@@ -39,17 +46,17 @@ import { existsSync, lstatSync, readlinkSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 if (!existsSync(join(process.cwd(), "package.json"))) {
-  console.error("❌ package.json not found");
+  console.error(`${PREFIX.fail} package.json not found`);
   hasErrors = true;
 } else {
-  console.log("✅ package.json: found");
+  console.log(`${PREFIX.ok} package.json: found`);
 }
 
 // biome.jsonの存在確認
 if (!existsSync(join(process.cwd(), "biome.json"))) {
-  console.warn("⚠️  biome.json not found (recommended)");
+  console.warn(`${PREFIX.warn} biome.json not found (recommended)`);
 } else {
-  console.log("✅ biome.json: found");
+  console.log(`${PREFIX.ok} biome.json: found`);
 }
 
 /** @returns true if any symlink check failed */
@@ -71,16 +78,16 @@ function verifySymlinkState(paths: string[]): boolean {
       const target = readlinkSync(fullPath);
       try {
         statSync(fullPath); // リンク先の実体を確認（壊れたリンクなら例外）
-        console.log(`✅ Symlink: ${p} → ${target}`);
+        console.log(`${PREFIX.ok} Symlink: ${p} → ${target}`);
       } catch (_targetErr) {
         console.error(
-          `❌ Symlink broken: ${p} → ${target} (target does not exist)`,
+          `${PREFIX.fail} Symlink broken: ${p} → ${target} (target does not exist)`,
         );
         failed = true;
       }
     } catch (err) {
       console.error(
-        `❌ Symlink check failed: ${p} — ${err instanceof Error ? err.message : String(err)}`,
+        `${PREFIX.fail} Symlink check failed: ${p} — ${err instanceof Error ? err.message : String(err)}`,
       );
       failed = true;
     }
@@ -104,9 +111,9 @@ if (verifySymlinkState(symlinkTargets)) {
 }
 
 if (hasErrors) {
-  console.error("\n❌ Environment check failed");
+  console.error(`\n${PREFIX.fail} Environment check failed`);
   process.exit(1);
 } else {
-  console.log("\n✅ All checks passed!");
+  console.log(`\n${PREFIX.ok} All checks passed!`);
   process.exit(0);
 }
