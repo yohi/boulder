@@ -8,7 +8,7 @@
 
 ## アーキテクチャ概要
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           Host Machine                                  │
 │                                                                         │
@@ -49,9 +49,10 @@
 ```
 
 **用途の分離**:
+
 | 環境 | 用途 | コマンド例 |
 |------|------|-----------|
-| **Devcontainer** | 検証（lint, test, build） | `bun run check`, `bun test`, `bun run build` |
+| **Devcontainer** | 検証（lint, test） | `bun run check`, `bun test` |
 | **ホスト環境** | 実運用 | `bun run start`, 本番コマンド |
 
 ---
@@ -64,7 +65,7 @@
 
 **処理フロー**:
 
-```
+```text
 boulder init [--force]
      │
      ▼
@@ -160,6 +161,9 @@ main();
 
 **CLI エントリーポイント** (`bin/boulder`):
 
+> **注記**: グローバル配置の `bin/boulder` と `~/.config/boulder/scripts/boulder-doctor.ts` は将来的に実装予定です。  
+> 現状は `package.json` の `doctor` スクリプトがプロジェクトローカルの `scripts/boulder-doctor.ts` を呼び出します。
+
 ```bash
 #!/usr/bin/env bun
 import { join } from "path";
@@ -226,7 +230,7 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 
 ```json
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "organizeImports": { "enabled": true },
   "linter": {
     "enabled": true,
@@ -247,6 +251,7 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 ```
 
 **設計判断**:
+
 | 項目 | 選択 | 理由 |
 |------|------|------|
 | インデント | 2 spaces | 業界標準、TypeScript プロジェクトで一般的 |
@@ -263,17 +268,20 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 | スクリプト | コマンド | 要件マッピング |
 |-----------|---------|---------------|
 | `test` | `bun test` | FR-3.1 |
-| `build` | `bun build ./src/index.ts --outdir ./dist` | FR-3.1 |
 | `lint` | `biome lint .` | FR-2.3 |
 | `format` | `biome format --write .` | FR-2.4 |
 | `check` | `biome check --write .` | FR-2.5 |
 | `doctor` | `bun run scripts/boulder-doctor.ts` | FR-4.1 |
 
+> **注記**: `doctor` は現状プロジェクトローカル配置。グローバル配置への移行は将来的に実装予定。
+
 ---
 
 ### 4. Boulder Doctor 更新 (FR-4)
 
-**ファイル**: `scripts/boulder-doctor.ts`
+**ファイル**: `scripts/boulder-doctor.ts` (プロジェクトローカル配置)
+
+> **注記**: 現状はプロジェクトローカルに配置。グローバル配置（`~/.config/boulder/scripts/boulder-doctor.ts`）への移行は将来的に実装予定です。
 
 **追加チェック項目**:
 
@@ -310,11 +318,9 @@ Ralph Loop の検証コマンドを更新:
 
 ```diff
 - 1. `bun test` (if tests exist)
-- 2. `bun run build` (to check compilation)
-- 3. `bun run lint` (minimal syntax check)
+- 2. `bun run lint` (minimal syntax check)
 + 1. `bun run check` (Biome lint + format)
 + 2. `bun test` (if tests exist)
-+ 3. `bun run build` (to check compilation)
 ```
 
 ---
@@ -323,13 +329,13 @@ Ralph Loop の検証コマンドを更新:
 
 ### グローバル配置 (~/.config/boulder/)
 
-```
+```text
 ~/.config/boulder/
 ├── bin/
-│   └── boulder             # [NEW] CLI エントリーポイント
+│   └── boulder             # [FUTURE] CLI エントリーポイント（将来実装）
 ├── scripts/
-│   ├── boulder-init.ts     # [NEW] init コマンド
-│   └── boulder-doctor.ts   # [UPDATE] Biome チェック追加
+│   ├── boulder-init.ts     # [FUTURE] init コマンド（将来実装）
+│   └── boulder-doctor.ts   # [FUTURE] グローバル版（将来実装）
 ├── rules/
 │   ├── boulder-sisyphus.mdc      # [UPDATE] Biome 統合
 │   └── boulder-tool-ast-grep.mdc
@@ -339,12 +345,14 @@ Ralph Loop の検証コマンドを更新:
 
 ### プロジェクト側
 
-```
+```text
 <Project>/
 ├── .cursor/
 │   └── rules/              # [SYMLINK] → ~/.config/boulder/rules/
 ├── .devcontainer/
 │   └── devcontainer.json   # [NEW] Devcontainer 設定
+├── scripts/
+│   └── boulder-doctor.ts   # [NEW] プロジェクト環境チェック（ローカル版）
 ├── biome.json              # [NEW] Biome 設定
 ├── package.json            # [UPDATE] oh-my-opencode 依存追加
 └── ...

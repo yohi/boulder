@@ -1,0 +1,20 @@
+{
+  "name": "project-boulder",
+  "version": "2.0.0",
+  "description": "The Sisyphus-Native Architecture - Push the Rock",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "doctor": "bun run scripts/boulder-doctor.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.14",
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "oh-my-opencode": "latest"
+  }
+}

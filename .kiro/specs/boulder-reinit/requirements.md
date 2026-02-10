@@ -85,7 +85,7 @@ Project Boulder の再初期化。以下を実現する：
 
 ```bash
 # 1. Boulder をグローバルにインストール
-git clone https://github.com/<org>/boulder.git ~/.config/boulder
+git clone https://github.com/yohi/boulder.git ~/.config/boulder
 cd ~/.config/boulder
 bun install
 
@@ -265,6 +265,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 - [ ] `bun run doctor` が正常終了する
 - [ ] Biome のチェックが doctor に含まれている
+- [ ] シンボリックリンクの状態がチェックされる
 
 ### AC-5: セットアップ手順が機能する
 
