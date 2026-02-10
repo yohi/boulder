@@ -35,7 +35,7 @@ Project Boulder の再初期化。以下を実現する：
 │   ├── boulder-sisyphus.mdc    # Identity Layer
 │   └── boulder-tool-ast-grep.mdc
 ├── scripts/
-│   └── boulder-doctor.ts       # ヘルスチェック
+│   └── boulder-doctor.ts       # [FUTURE] ヘルスチェック（将来実装予定）
 └── config.json                 # Boulder 設定（将来用）
 ```
 
@@ -46,6 +46,8 @@ Project Boulder の再初期化。以下を実現する：
 ├── .cursor/rules/              # → ~/.config/boulder/rules/ へのシンボリックリンク
 ├── .devcontainer/
 │   └── devcontainer.json
+├── scripts/
+│   └── boulder-doctor.ts       # プロジェクトローカルのヘルスチェック
 ├── biome.json
 ├── package.json                # oh-my-opencode を依存に持つ
 └── ...
@@ -291,7 +293,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 |---------|------|
 | `bin/boulder` | Boulder CLI エントリーポイント |
 | `scripts/boulder-init.ts` | `boulder init` コマンド実装 |
-| `scripts/boulder-doctor.ts` | ヘルスチェックスクリプト更新 |
 | `rules/boulder-sisyphus.mdc` | Identity Layer ルール |
 | `rules/boulder-tool-ast-grep.mdc` | ast-grep ツールルール |
 
@@ -300,6 +301,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 | ファイル | 説明 |
 |---------|------|
 | `.devcontainer/devcontainer.json` | Devcontainer 設定 |
+| `scripts/boulder-doctor.ts` | プロジェクトローカルのヘルスチェックスクリプト（新規追加） |
 | `biome.json` | Biome 設定 |
 | `package.json` | scripts / devDependencies 更新 |
 | `.cursor/rules/` | シンボリックリンク → `~/.config/boulder/rules/` |

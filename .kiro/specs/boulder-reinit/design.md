@@ -375,13 +375,13 @@ Ralph Loop の検証コマンドを更新:
 | FR-3.1 | Ralph Loop update | `~/.config/boulder/rules/boulder-sisyphus.mdc` |
 | FR-3.2 | 既存ルール維持 | `~/.config/boulder/rules/boulder-sisyphus.mdc` |
 | FR-3.3 | 既存ルール維持 | `~/.config/boulder/rules/boulder-sisyphus.mdc` |
-| FR-4.1 | doctor script | `~/.config/boulder/scripts/boulder-doctor.ts` |
-| FR-4.2 | Biome check | `~/.config/boulder/scripts/boulder-doctor.ts` |
-| FR-4.3 | 既存機能維持 | `~/.config/boulder/scripts/boulder-doctor.ts` |
+| FR-4.1 | doctor script | `scripts/boulder-doctor.ts` |
+| FR-4.2 | Biome check | `scripts/boulder-doctor.ts` |
+| FR-4.3 | 既存機能維持 | `scripts/boulder-doctor.ts` |
 | FR-5.1 | Quick Start ガイド | `README.md` |
 | FR-5.2 | postCreateCommand | `.devcontainer/devcontainer.json` |
 | FR-5.3 | Quick Start ガイド | `README.md` |
-| FR-5.4 | doctor script | `~/.config/boulder/scripts/boulder-doctor.ts` |
+| FR-5.4 | doctor script | `scripts/boulder-doctor.ts` |
 | FR-6.1 | boulder CLI | `~/.config/boulder/bin/boulder` |
 | FR-6.2 | init script (symlink) | `~/.config/boulder/scripts/boulder-init.ts` |
 | FR-6.3 | init script (confirmation) | `~/.config/boulder/scripts/boulder-init.ts` |
