@@ -1,0 +1,31 @@
+#!/usr/bin/env bun
+import { join } from "path";
+import { homedir } from "os";
+
+const BOULDER_HOME = join(homedir(), ".config", "boulder");
+const command = process.argv[2];
+const args = process.argv.slice(3);
+
+(async () => {
+  switch (command) {
+    case "init": {
+      if (args.includes("--force")) {
+        process.argv = [...process.argv.slice(0, 2), "--force"];
+      }
+      await import(join(BOULDER_HOME, "scripts", "boulder-init.ts"));
+      break;
+    }
+    case "doctor":
+      await import(join(BOULDER_HOME, "scripts", "boulder-doctor.ts"));
+      break;
+    default:
+      console.log("🪨 Project Boulder CLI");
+      console.log("");
+      console.log("Usage: boulder <command>");
+      console.log("");
+      console.log("Commands:");
+      console.log("  init [--force]  Initialize Boulder in current project");
+      console.log("  doctor          Check environment health");
+      break;
+  }
+})();
