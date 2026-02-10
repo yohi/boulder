@@ -5,7 +5,6 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 
 console.log("🪨 Project Boulder Doctor Checking...");
@@ -96,7 +95,11 @@ const run = (cmd: string[], cwd = process.cwd()) => {
       "import { test } from 'bun:test'; test('probe', () => {});",
     );
     const testRun = run(["bun", "test", probeTest]);
-    unlinkSync(probeTest);
+    try {
+      unlinkSync(probeTest);
+    } catch {
+      // Cleanup failed but continue
+    }
 
     if (testRun.exitCode !== 0) {
       console.error("❌ Reflex Check: 'test' script exists but runner failed.");
@@ -126,7 +129,6 @@ const run = (cmd: string[], cwd = process.cwd()) => {
     console.warn("⚠️ Rules Directory: 'rules' folder not found in root.");
   }
 
-  const _BOULDER_HOME = join(homedir(), ".config", "boulder");
   const rulesTarget = join(process.cwd(), ".cursor", "rules");
 
   if (existsSync(rulesTarget)) {
