@@ -1,0 +1,49 @@
+---
+description: "Structural search tool using ast-grep"
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.js"
+alwaysApply: false
+---
+
+# Tool: ast-grep (Boulder Edition)
+
+Use this tool for structural code search instead of regex `grep`.
+
+## Usage Policy
+- **Environment:** Execute via `bun run` to avoid command collisions.
+- **Output:** Always request `--json` for precise parsing.
+
+## Commands
+
+Use the following syntax in the terminal (Project Local Execution):
+
+```bash
+# Pattern Search
+bun run oh-my-opencode ast-grep --pattern "class $NAME { $$$ }" --json
+
+# API Usage Search
+bun run oh-my-opencode ast-grep --pattern "console.log($$$)" --json
+```
+
+## Troubleshooting (Self-Healing)
+
+### 1. General Failure
+
+If execution fails, verify that `oh-my-opencode` is installed in the project:
+
+```bash
+bun add -D oh-my-opencode
+```
+
+### 2. Windows / Binary Issues
+
+If you encounter `EPERM` or binary loading errors on Windows, run this in PowerShell:
+
+```powershell
+# Relocate cache to avoid permission locks, then reinstall
+$env:BUN_INSTALL_CACHE_DIR="C:\bun-cache"
+bun pm cache rm
+bun install
+```
