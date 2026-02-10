@@ -161,6 +161,9 @@ main();
 
 **CLI エントリーポイント** (`bin/boulder`):
 
+> **注記**: グローバル配置の `bin/boulder` と `~/.config/boulder/scripts/boulder-doctor.ts` は将来的に実装予定です。  
+> 現状は `package.json` の `doctor` スクリプトがプロジェクトローカルの `scripts/boulder-doctor.ts` を呼び出します。
+
 ```bash
 #!/usr/bin/env bun
 import { join } from "path";
@@ -268,15 +271,17 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 | `lint` | `biome lint .` | FR-2.3 |
 | `format` | `biome format --write .` | FR-2.4 |
 | `check` | `biome check --write .` | FR-2.5 |
-| `doctor` | `bun run ~/.config/boulder/scripts/boulder-doctor.ts` | FR-4.1 |
+| `doctor` | `bun run scripts/boulder-doctor.ts` | FR-4.1 |
 
-> **注記**: `bun run build` 参照は現在のスコープには含まれません。
+> **注記**: `doctor` は現状プロジェクトローカル配置。グローバル配置への移行は将来的に実装予定。
 
 ---
 
 ### 4. Boulder Doctor 更新 (FR-4)
 
-**ファイル**: `scripts/boulder-doctor.ts`
+**ファイル**: `scripts/boulder-doctor.ts` (プロジェクトローカル配置)
+
+> **注記**: 現状はプロジェクトローカルに配置。グローバル配置（`~/.config/boulder/scripts/boulder-doctor.ts`）への移行は将来的に実装予定です。
 
 **追加チェック項目**:
 
@@ -327,10 +332,10 @@ Ralph Loop の検証コマンドを更新:
 ```text
 ~/.config/boulder/
 ├── bin/
-│   └── boulder             # [NEW] CLI エントリーポイント
+│   └── boulder             # [FUTURE] CLI エントリーポイント（将来実装）
 ├── scripts/
-│   ├── boulder-init.ts     # [NEW] init コマンド
-│   └── boulder-doctor.ts   # [UPDATE] Biome チェック追加
+│   ├── boulder-init.ts     # [FUTURE] init コマンド（将来実装）
+│   └── boulder-doctor.ts   # [FUTURE] グローバル版（将来実装）
 ├── rules/
 │   ├── boulder-sisyphus.mdc      # [UPDATE] Biome 統合
 │   └── boulder-tool-ast-grep.mdc
@@ -346,6 +351,8 @@ Ralph Loop の検証コマンドを更新:
 │   └── rules/              # [SYMLINK] → ~/.config/boulder/rules/
 ├── .devcontainer/
 │   └── devcontainer.json   # [NEW] Devcontainer 設定
+├── scripts/
+│   └── boulder-doctor.ts   # [NEW] プロジェクト環境チェック（ローカル版）
 ├── biome.json              # [NEW] Biome 設定
 ├── package.json            # [UPDATE] oh-my-opencode 依存追加
 └── ...
