@@ -1,5 +1,12 @@
 #!/usr/bin/env bun
-import { existsSync, lstatSync, mkdirSync, rmSync, symlinkSync } from "node:fs";
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  rmSync,
+  type Stats,
+  symlinkSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -34,19 +41,26 @@ async function main() {
     }
 
     // 4. 既存の rules 確認
-    if (existsSync(RULES_TARGET)) {
-      const stat = lstatSync(RULES_TARGET);
-      if (stat.isSymbolicLink()) {
-        console.log("✅ Already linked to Boulder rules.");
-        await runDoctor();
-        return;
+    let existingStat: Stats | undefined;
+    try {
+      existingStat = lstatSync(RULES_TARGET);
+    } catch {}
+
+    if (existingStat) {
+      if (existingStat.isSymbolicLink()) {
+        if (!force) {
+          console.log("✅ Already linked to Boulder rules.");
+          await runDoctor();
+          return;
+        }
+      } else {
+        if (!force) {
+          console.error("⚠️  .cursor/rules/ already exists.");
+          console.error("   Use --force to overwrite.");
+          process.exit(1);
+        }
       }
-      if (!force) {
-        console.error("⚠️  .cursor/rules/ already exists.");
-        console.error("   Use --force to overwrite.");
-        process.exit(1);
-      }
-      rmSync(RULES_TARGET, { recursive: true });
+      rmSync(RULES_TARGET, { recursive: true, force: true });
       console.log("🗑️  Removed existing .cursor/rules/");
     }
 
