@@ -2,9 +2,12 @@ import {
   existsSync,
   lstatSync,
   readFileSync,
+  realpathSync,
+  type Stats,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
 console.log("🪨 Project Boulder Doctor Checking...");
@@ -130,12 +133,27 @@ const run = (cmd: string[], cwd = process.cwd()) => {
   }
 
   const rulesTarget = join(process.cwd(), ".cursor", "rules");
+  let rulesStat: Stats | undefined;
+  try {
+    rulesStat = lstatSync(rulesTarget);
+  } catch {}
 
-  if (existsSync(rulesTarget)) {
+  if (rulesStat) {
     try {
-      const stat = lstatSync(rulesTarget);
-      if (stat.isSymbolicLink()) {
-        console.log(`✅ Symlink Check: .cursor/rules/ → Boulder rules linked`);
+      if (rulesStat.isSymbolicLink()) {
+        const realPath = realpathSync(rulesTarget);
+        const expectedPath = join(homedir(), ".config", "boulder", "rules");
+        if (realPath === expectedPath) {
+          console.log(
+            `✅ Symlink Check: .cursor/rules/ → Boulder rules linked`,
+          );
+        } else {
+          console.warn(
+            `⚠️ Symlink Check: .cursor/rules/ points to unexpected location: ${realPath}`,
+          );
+          console.warn(`   -> Expected: ${expectedPath}`);
+          console.warn("   -> Run: boulder init --force");
+        }
       } else {
         console.log(
           "⚠️ Symlink Check: .cursor/rules/ exists but is NOT a symlink.",
@@ -143,7 +161,10 @@ const run = (cmd: string[], cwd = process.cwd()) => {
         console.log("   -> Run: boulder init --force");
       }
     } catch {
-      console.log("⚠️ Symlink Check: Could not read .cursor/rules/ status.");
+      console.log(
+        "⚠️ Symlink Check: Could not read .cursor/rules/ status (broken link?).",
+      );
+      console.log("   -> Run: boulder init --force");
     }
   } else {
     console.log("⚠️ Symlink Check: .cursor/rules/ does not exist.");
