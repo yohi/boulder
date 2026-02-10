@@ -12,18 +12,17 @@
 その名は、シーシュポス（Sisyphus）が永遠に転がし続ける「岩（Boulder）」に由来する。
 開発における「検証・修正・再検証」という重厚な無限ループを、AI任せにするのではなく、**「厳格なルール」と「強靭なツール」によって確実に前に進める（Push）** ことを目的とする。
 
-## 2. ディレクトリ構成 (The Boulder Structure)
+## 2. Directory Structure (The Boulder Structure)
 
-Boulder の実体は、**プロジェクトのルートディレクトリ**の `.cursor/` 内に配置し、Gitでバージョン管理する。これにより、チーム全体で「不屈の精神」とルールを共有・再現（Reproducibility）する。
+Boulder の実体は、**プロジェクトのルートディレクトリ**の `rules/` 内に配置し、Gitでバージョン管理する。これにより、チーム全体で「不屈の精神」とルールを共有・再現（Reproducibility）する。
 
-> **Note:** プロジェクトごとの挙動の一貫性を保証するため、必ず**リポジトリ内配置 (`<Project Root>/.cursor/rules`)** とする。
+> **Note:** プロジェクトごとの挙動の一貫性を保証するため、必ず**リポジトリ内配置 (`<Project Root>/rules`)** とする。
 
 ```text
 <Your Project Root>/     <-- Target Project (Git Repo)
-├── .cursor/
-│   └── rules/
-│       ├── boulder-sisyphus.mdc      # [Prefix for safety & sorting]
-│       └── boulder-tool-ast-grep.mdc
+├── rules/
+│   ├── boulder-sisyphus.mdc      # [Prefix for safety & sorting]
+│   └── boulder-tool-ast-grep.mdc
 ├── scripts/
 │   └── boulder-doctor.ts     # [Health Check Script]
 ├── package.json              # [Dependencies: "oh-my-opencode"]
@@ -147,8 +146,8 @@ Project Boulder のルールは、Anthropic の CLI ツール "Claude Code" と�
 - @specs.md
 
 ## 2. Cursor Rules (Boulder Laws)
-- @.cursor/rules/boulder-sisyphus.mdc
-- @.cursor/rules/boulder-tool-ast-grep.mdc
+- @rules/boulder-sisyphus.mdc
+- @rules/boulder-tool-ast-grep.mdc
 
 ## 3. Commands
 - Build: `bun run build`
@@ -190,17 +189,16 @@ const run = (cmd: string[], cwd = process.cwd()) => {
 
 // Check 1: ast-grep tool (Muscle Check)
 {
-  // Try bun run first
-  const r = run(["bun", "run", "oh-my-opencode", "ast-grep", "--version"]);
+  // Try sg command directly
+  const r = run(["sg", "--version"]);
   
-  if (r.exitCode !== 0 || !/ast-grep/i.test(r.text)) {
-    console.error("❌ Muscle Atrophy: ast-grep FAILED (Dependency missing or Corrupted)");
-    console.error("   -> Try: bun add -D oh-my-opencode");
-    console.error("   -> Or:  bun pm cache rm && bun install");
+  if (r.exitCode !== 0 || !/ast-grep|sg/i.test(r.text)) {
+    console.error("❌ Muscle Atrophy: ast-grep (sg) FAILED (Global Dependency missing or Corrupted)");
+    console.error("   -> Try: bun install -g oh-my-opencode");
     console.error(`   -> Log: ${r.text}`);
     process.exit(1);
   }
-  console.log("✅ Muscle Check: ast-grep OK");
+  console.log("✅ Muscle Check: ast-grep (sg) OK");
 }
 
 // Check 2: Test/Build Runner (Reflex Check)
@@ -262,7 +260,7 @@ bun run scripts/boulder-doctor.ts
 1. **Composer (Cmd+I) を開く。**
 
 2. **対象ファイルをチャットに追加 (`@src/index.ts`)。**
-   * `.cursor/rules/` 配下のルール (`boulder-tool-ast-grep.mdc` など) がコンテキストに応じて適用される。
+   * `rules/` 配下のルール (`boulder-tool-ast-grep.mdc` など) がコンテキストに応じて適用される。
 
 3. **指示を出す:**
    > 「このバグを修正せよ。検証ログを見せろ。」

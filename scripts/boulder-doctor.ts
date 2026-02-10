@@ -58,71 +58,11 @@ if (!existsSync(join(process.cwd(), "biome.json"))) {
   console.log(`${PREFIX.ok} biome.json: found`);
 }
 
-/** @returns true if any symlink check failed */
-function verifySymlinkState(
-  paths: string[],
-  requiredSymlinks: Set<string> = new Set(),
-): boolean {
-  let failed = false;
-  for (const p of paths) {
-    const fullPath = join(process.cwd(), p);
-    const isRequired = requiredSymlinks.has(p);
-
-    if (!existsSync(fullPath) && !lstatExists(fullPath)) {
-      if (isRequired) {
-        console.error(`${PREFIX.fail} Required symlink missing: ${p}`);
-        failed = true;
-      }
-      // 必須でないパスはスキップ（他のチェックで検出済み）
-      continue;
-    }
-
-    try {
-      const lst = lstatSync(fullPath);
-      if (!lst.isSymbolicLink()) {
-        if (isRequired) {
-          console.error(
-            `${PREFIX.fail} ${p} exists but is not a symbolic link`,
-          );
-          failed = true;
-        }
-        continue;
-      }
-
-      const target = readlinkSync(fullPath);
-      try {
-        statSync(fullPath); // リンク先の実体を確認（壊れたリンクなら例外）
-        console.log(`${PREFIX.ok} Symlink: ${p} → ${target}`);
-      } catch (_targetErr) {
-        console.error(
-          `${PREFIX.fail} Symlink broken: ${p} → ${target} (target does not exist)`,
-        );
-        failed = true;
-      }
-    } catch (err) {
-      console.error(
-        `${PREFIX.fail} Symlink check failed: ${p} — ${err instanceof Error ? err.message : String(err)}`,
-      );
-      failed = true;
-    }
-  }
-  return failed;
-}
-
-// existsSync returns false for broken symlinks; lstat detects them
-function lstatExists(p: string): boolean {
-  try {
-    lstatSync(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const symlinkTargets = [".cursor/rules"];
-const requiredSymlinks = new Set([".cursor/rules"]);
-if (verifySymlinkState(symlinkTargets, requiredSymlinks)) {
+if (!existsSync(join(process.cwd(), "rules"))) {
+  console.error(`${PREFIX.fail} rules directory missing`);
   hasErrors = true;
+} else {
+  console.log(`${PREFIX.ok} rules directory: found`);
 }
 
 if (hasErrors) {
