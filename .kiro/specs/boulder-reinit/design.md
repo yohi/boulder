@@ -100,8 +100,9 @@ boulder init [--force]
 #!/usr/bin/env bun
 import { existsSync, lstatSync, symlinkSync, mkdirSync, rmSync } from "fs";
 import { join, resolve } from "path";
+import { homedir } from "os";
 
-const BOULDER_HOME = join(process.env.HOME || "~", ".config", "boulder");
+const BOULDER_HOME = join(homedir(), ".config", "boulder");
 const RULES_SOURCE = join(BOULDER_HOME, "rules");
 const TARGET_DIR = ".cursor";
 const RULES_TARGET = join(TARGET_DIR, "rules");
@@ -110,39 +111,48 @@ async function main() {
   const force = process.argv.includes("--force");
   const cwd = process.cwd();
 
-  // 1. プロジェクト確認
-  if (!existsSync(join(cwd, "package.json"))) {
-    console.error("❌ package.json not found. Is this a project directory?");
-    process.exit(1);
-  }
-
-  // 2. .cursor ディレクトリ作成
-  if (!existsSync(TARGET_DIR)) {
-    mkdirSync(TARGET_DIR, { recursive: true });
-  }
-
-  // 3. 既存の rules 確認
-  if (existsSync(RULES_TARGET)) {
-    const stat = lstatSync(RULES_TARGET);
-    if (stat.isSymbolicLink()) {
-      console.log("✅ Already linked to Boulder rules.");
-      return;
-    }
-    if (!force) {
-      console.error("⚠️  .cursor/rules/ already exists.");
-      console.error("   Use --force to overwrite.");
+  try {
+    // 1. プロジェクト確認
+    if (!existsSync(join(cwd, "package.json"))) {
+      console.error("❌ package.json not found. Is this a project directory?");
       process.exit(1);
     }
-    rmSync(RULES_TARGET, { recursive: true });
+
+    // 2. .cursor ディレクトリ作成
+    if (!existsSync(TARGET_DIR)) {
+      mkdirSync(TARGET_DIR, { recursive: true });
+    }
+
+    // 3. 既存の rules 確認
+    if (existsSync(RULES_TARGET)) {
+      const stat = lstatSync(RULES_TARGET);
+      if (stat.isSymbolicLink()) {
+        console.log("✅ Already linked to Boulder rules.");
+        return;
+      }
+      if (!force) {
+        console.error("⚠️  .cursor/rules/ already exists.");
+        console.error("   Use --force to overwrite.");
+        process.exit(1);
+      }
+      rmSync(RULES_TARGET, { recursive: true });
+    }
+
+    // 4. シンボリックリンク作成
+    const symlinkType = process.platform === "win32" ? "junction" : "dir";
+    symlinkSync(RULES_SOURCE, RULES_TARGET, symlinkType);
+    console.log(`✅ Linked: ${RULES_TARGET} → ${RULES_SOURCE}`);
+
+    // 5. Doctor 実行
+    const doctor = Bun.spawn(["bun", "run", join(BOULDER_HOME, "scripts", "boulder-doctor.ts")]);
+    const exitCode = await doctor.exited;
+    if (exitCode !== 0) {
+      throw new Error(`boulder doctor failed with exit code ${exitCode}`);
+    }
+  } catch (error) {
+    console.error("❌ Setup failed:", error);
+    process.exit(1);
   }
-
-  // 4. シンボリックリンク作成
-  symlinkSync(RULES_SOURCE, RULES_TARGET, "junction"); // Windows 対応
-  console.log(`✅ Linked: ${RULES_TARGET} → ${RULES_SOURCE}`);
-
-  // 5. Doctor 実行
-  const doctor = Bun.spawn(["bun", "run", join(BOULDER_HOME, "scripts", "boulder-doctor.ts")]);
-  await doctor.exited;
 }
 
 main();
@@ -153,23 +163,26 @@ main();
 ```bash
 #!/usr/bin/env bun
 import { join } from "path";
+import { homedir } from "os";
 
-const BOULDER_HOME = join(process.env.HOME || "~", ".config", "boulder");
+const BOULDER_HOME = join(homedir(), ".config", "boulder");
 const command = process.argv[2];
 
-switch (command) {
-  case "init":
-    await import(join(BOULDER_HOME, "scripts", "boulder-init.ts"));
-    break;
-  case "doctor":
-    await import(join(BOULDER_HOME, "scripts", "boulder-doctor.ts"));
-    break;
-  default:
-    console.log("Usage: boulder <command>");
-    console.log("Commands:");
-    console.log("  init    Initialize Boulder in current project");
-    console.log("  doctor  Check environment health");
-}
+(async () => {
+  switch (command) {
+    case "init":
+      await import(join(BOULDER_HOME, "scripts", "boulder-init.ts"));
+      break;
+    case "doctor":
+      await import(join(BOULDER_HOME, "scripts", "boulder-doctor.ts"));
+      break;
+    default:
+      console.log("Usage: boulder <command>");
+      console.log("Commands:");
+      console.log("  init    Initialize Boulder in current project");
+      console.log("  doctor  Check environment health");
+  }
+})();
 ```
 
 ### 1. Devcontainer 設定 (FR-1)
@@ -213,7 +226,7 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 
 ```json
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "organizeImports": { "enabled": true },
   "linter": {
     "enabled": true,
