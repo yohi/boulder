@@ -29,23 +29,25 @@ Project Boulder の再初期化。以下を実現する：
 
 ### グローバル配置（Boulder 本体）
 
-```
+```text
 ~/.config/boulder/              # グローバル Boulder 設定
 ├── rules/                      # 共有ルール
 │   ├── boulder-sisyphus.mdc    # Identity Layer
 │   └── boulder-tool-ast-grep.mdc
 ├── scripts/
-│   └── boulder-doctor.ts       # ヘルスチェック
+│   └── boulder-doctor.ts       # [FUTURE] ヘルスチェック（将来実装予定）
 └── config.json                 # Boulder 設定（将来用）
 ```
 
 ### プロジェクト側（シンボリックリンク）
 
-```
+```text
 <Project>/
 ├── .cursor/rules/              # → ~/.config/boulder/rules/ へのシンボリックリンク
 ├── .devcontainer/
 │   └── devcontainer.json
+├── scripts/
+│   └── boulder-doctor.ts       # プロジェクトローカルのヘルスチェック
 ├── biome.json
 ├── package.json                # oh-my-opencode を依存に持つ
 └── ...
@@ -85,7 +87,7 @@ Project Boulder の再初期化。以下を実現する：
 
 ```bash
 # 1. Boulder をグローバルにインストール
-git clone https://github.com/<org>/boulder.git ~/.config/boulder
+git clone https://github.com/yohi/boulder.git ~/.config/boulder
 cd ~/.config/boulder
 bun install
 
@@ -195,7 +197,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 |----|----------------|
 | FR-4.1 | The system **shall** provide `bun run doctor` command to verify environment integrity. |
 | FR-4.2 | The doctor script **shall** verify that Biome is installed and functional. |
-| FR-4.3 | The doctor script **shall** verify that `bun test` runner is operational. |
+| FR-4.3 | The doctor script **shall** verify that `bun test` runner is operational. *(Future: not yet implemented)* |
 
 ### FR-5: 初期セットアップ
 
@@ -265,6 +267,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 - [ ] `bun run doctor` が正常終了する
 - [ ] Biome のチェックが doctor に含まれている
+- [ ] シンボリックリンクの状態がチェックされる
 
 ### AC-5: セットアップ手順が機能する
 
@@ -290,7 +293,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 |---------|------|
 | `bin/boulder` | Boulder CLI エントリーポイント |
 | `scripts/boulder-init.ts` | `boulder init` コマンド実装 |
-| `scripts/boulder-doctor.ts` | ヘルスチェックスクリプト更新 |
 | `rules/boulder-sisyphus.mdc` | Identity Layer ルール |
 | `rules/boulder-tool-ast-grep.mdc` | ast-grep ツールルール |
 
@@ -299,6 +301,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 | ファイル | 説明 |
 |---------|------|
 | `.devcontainer/devcontainer.json` | Devcontainer 設定 |
+| `scripts/boulder-doctor.ts` | プロジェクトローカルのヘルスチェックスクリプト（新規追加） |
 | `biome.json` | Biome 設定 |
 | `package.json` | scripts / devDependencies 更新 |
 | `.cursor/rules/` | シンボリックリンク → `~/.config/boulder/rules/` |

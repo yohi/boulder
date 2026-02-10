@@ -117,8 +117,15 @@ const run = (cmd: string[], cwd = process.cwd()) => {
   }
 }
 
-// Check 5: シンボリックリンク状態確認 (FR-6 関連)
+// Check 5: ルールディレクトリとシンボリックリンク状態確認 (FR-6 関連)
 {
+  const rulesDir = join(process.cwd(), "rules");
+  if (existsSync(rulesDir)) {
+    console.log("✅ Rules Directory: found");
+  } else {
+    console.warn("⚠️ Rules Directory: 'rules' folder not found in root.");
+  }
+
   const _BOULDER_HOME = join(homedir(), ".config", "boulder");
   const rulesTarget = join(process.cwd(), ".cursor", "rules");
 
