@@ -164,7 +164,7 @@ main();
 > **注記**: グローバル配置の `bin/boulder` と `~/.config/boulder/scripts/boulder-doctor.ts` は将来的に実装予定です。  
 > 現状は `package.json` の `doctor` スクリプトがプロジェクトローカルの `scripts/boulder-doctor.ts` を呼び出します。
 
-```bash
+```typescript
 #!/usr/bin/env bun
 import { join } from "path";
 import { homedir } from "os";

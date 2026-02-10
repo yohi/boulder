@@ -29,7 +29,7 @@ Project Boulder の再初期化。以下を実現する：
 
 ### グローバル配置（Boulder 本体）
 
-```
+```text
 ~/.config/boulder/              # グローバル Boulder 設定
 ├── rules/                      # 共有ルール
 │   ├── boulder-sisyphus.mdc    # Identity Layer
@@ -41,7 +41,7 @@ Project Boulder の再初期化。以下を実現する：
 
 ### プロジェクト側（シンボリックリンク）
 
-```
+```text
 <Project>/
 ├── .cursor/rules/              # → ~/.config/boulder/rules/ へのシンボリックリンク
 ├── .devcontainer/
@@ -195,7 +195,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 |----|----------------|
 | FR-4.1 | The system **shall** provide `bun run doctor` command to verify environment integrity. |
 | FR-4.2 | The doctor script **shall** verify that Biome is installed and functional. |
-| FR-4.3 | The doctor script **shall** verify that `bun test` runner is operational. |
+| FR-4.3 | The doctor script **shall** verify that `bun test` runner is operational. *(Future: not yet implemented)* |
 
 ### FR-5: 初期セットアップ
 
