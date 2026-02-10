@@ -49,9 +49,10 @@
 ```
 
 **用途の分離**:
+
 | 環境 | 用途 | コマンド例 |
 |------|------|-----------|
-| **Devcontainer** | 検証（lint, test, build） | `bun run check`, `bun test`, `bun run build` |
+| **Devcontainer** | 検証（lint, test） | `bun run check`, `bun test` |
 | **ホスト環境** | 実運用 | `bun run start`, 本番コマンド |
 
 ---
@@ -247,6 +248,7 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 ```
 
 **設計判断**:
+
 | 項目 | 選択 | 理由 |
 |------|------|------|
 | インデント | 2 spaces | 業界標準、TypeScript プロジェクトで一般的 |
@@ -267,6 +269,8 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 | `format` | `biome format --write .` | FR-2.4 |
 | `check` | `biome check --write .` | FR-2.5 |
 | `doctor` | `bun run ~/.config/boulder/scripts/boulder-doctor.ts` | FR-4.1 |
+
+> **注記**: `bun run build` 参照は現在のスコープには含まれません。
 
 ---
 
@@ -309,11 +313,9 @@ Ralph Loop の検証コマンドを更新:
 
 ```diff
 - 1. `bun test` (if tests exist)
-- 2. `bun run build` (to check compilation)
-- 3. `bun run lint` (minimal syntax check)
+- 2. `bun run lint` (minimal syntax check)
 + 1. `bun run check` (Biome lint + format)
 + 2. `bun test` (if tests exist)
-+ 3. `bun run build` (to check compilation)
 ```
 
 ---
@@ -322,7 +324,7 @@ Ralph Loop の検証コマンドを更新:
 
 ### グローバル配置 (~/.config/boulder/)
 
-```
+```text
 ~/.config/boulder/
 ├── bin/
 │   └── boulder             # [NEW] CLI エントリーポイント
@@ -338,7 +340,7 @@ Ralph Loop の検証コマンドを更新:
 
 ### プロジェクト側
 
-```
+```text
 <Project>/
 ├── .cursor/
 │   └── rules/              # [SYMLINK] → ~/.config/boulder/rules/
