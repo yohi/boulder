@@ -58,7 +58,7 @@ if (!existsSync(join(process.cwd(), "biome.json"))) {
   console.log(`${PREFIX.ok} biome.json: found`);
 }
 
-if (!existsSync("rules")) {
+if (!existsSync(join(process.cwd(), "rules"))) {
   console.error(`${PREFIX.fail} rules directory missing`);
   hasErrors = true;
 } else {
