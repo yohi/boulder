@@ -1,74 +1,189 @@
-#!/usr/bin/env bun
-
-/**
- * Boulder Doctor - プロジェクト環境のサニティチェック
- *
- * このスクリプトはプロジェクトローカルに配置され、プロジェクト固有の検証を行います。
- * グローバル配置（~/.config/boulder/scripts/boulder-doctor.ts）は将来的に実装予定です。
- */
-
-import { existsSync, lstatSync, readlinkSync, statSync } from "node:fs";
+import {
+  existsSync,
+  lstatSync,
+  readFileSync,
+  realpathSync,
+  type Stats,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 
-const PREFIX = {
-  ok: "[OK]",
-  fail: "[FAIL]",
-  warn: "[WARN]",
-  info: "[INFO]",
-} as const;
+console.log("🪨 Project Boulder Doctor Checking...");
+console.log(`✅ Bun Version: ${Bun.version}`);
 
-console.log(`${PREFIX.info} Boulder Doctor - Environment Check\n`);
+let warningsCount = 0;
 
-let hasErrors = false;
-
-// Bunのバージョン確認
-try {
-  const bunVersion = Bun.version;
-  console.log(`${PREFIX.ok} Bun: ${bunVersion}`);
-} catch (_e) {
-  console.error(`${PREFIX.fail} Bun runtime check failed`);
-  hasErrors = true;
-}
-
-// Biomeの存在確認
-try {
-  const proc = Bun.spawn(["bunx", "biome", "--version"]);
-  const exitCode = await proc.exited;
-  if (exitCode !== 0) {
-    throw new Error("Biome version check failed");
+const run = (cmd: string[], cwd = process.cwd()) => {
+  try {
+    const p = Bun.spawnSync(cmd, {
+      cwd,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const dec = new TextDecoder();
+    return {
+      exitCode: p.exitCode,
+      text: dec.decode(p.stdout) + dec.decode(p.stderr),
+    };
+  } catch (e) {
+    return { exitCode: 1, text: String(e) };
   }
-  console.log(`${PREFIX.ok} Biome: installed`);
-} catch (_e) {
-  console.error(`${PREFIX.fail} Biome not found or broken`);
-  console.error("   → Try: bun add -D @biomejs/biome");
-  hasErrors = true;
+};
+
+// Check 1: Biome 存在確認 (FR-4.2)
+{
+  const r = run(["bunx", "biome", "--version"]);
+  if (r.exitCode !== 0) {
+    console.error("❌ Biome Check: Biome not found or broken");
+    console.error("   -> Try: bun add -D @biomejs/biome");
+    console.error(`   -> Log: ${r.text}`);
+    process.exit(1);
+  }
+  console.log(`✅ Biome Check: OK (${r.text.trim()})`);
 }
 
-if (!existsSync(join(process.cwd(), "package.json"))) {
-  console.error(`${PREFIX.fail} package.json not found`);
-  hasErrors = true;
-} else {
-  console.log(`${PREFIX.ok} package.json: found`);
+// Check 2: Biome Lint 動作確認
+{
+  const r = run(["bunx", "biome", "lint", "--max-diagnostics=0", "."]);
+  if (r.exitCode !== 0) {
+    console.error("❌ Biome Lint: lint check failed");
+    console.error(`   -> Log: ${r.text}`);
+    // 警告のみ、致命的ではない
+    console.warn("   -> Warning: lint errors exist, but doctor continues.");
+    warningsCount++;
+  } else {
+    console.log("✅ Biome Lint: OK");
+  }
 }
 
-// biome.jsonの存在確認
-if (!existsSync(join(process.cwd(), "biome.json"))) {
-  console.warn(`${PREFIX.warn} biome.json not found (recommended)`);
-} else {
-  console.log(`${PREFIX.ok} biome.json: found`);
+// Check 3: ast-grep ツール確認 (Muscle Check)
+{
+  const r = run(["bun", "run", "oh-my-opencode", "ast-grep", "--version"]);
+
+  if (r.exitCode !== 0 || !/\d+\.\d+\.\d+/.test(r.text)) {
+    console.error(
+      "❌ Muscle Atrophy: ast-grep FAILED (Dependency missing or Corrupted)",
+    );
+    console.error("   -> Try: bun add -D oh-my-opencode");
+    console.error("   -> Or:  bun pm cache rm && bun install");
+    console.error(`   -> Log: ${r.text}`);
+    process.exit(1);
+  }
+  console.log("✅ Muscle Check: ast-grep OK");
 }
 
-if (!existsSync(join(process.cwd(), "rules"))) {
-  console.error(`${PREFIX.fail} rules directory missing`);
-  hasErrors = true;
-} else {
-  console.log(`${PREFIX.ok} rules directory: found`);
+// Check 4: package.json + テストランナー確認 (FR-4.3)
+{
+  const packageJsonPath = join(process.cwd(), "package.json");
+  if (!existsSync(packageJsonPath)) {
+    console.error("❌ Fatal: package.json not found in root.");
+    process.exit(1);
+  }
+
+  let pkg: Record<string, unknown>;
+  try {
+    pkg = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+  } catch {
+    console.error("❌ Fatal: package.json is invalid JSON.");
+    process.exit(1);
+  }
+
+  const scripts = (pkg.scripts || {}) as Record<string, string>;
+  const hasTest = !!scripts.test;
+  const hasBuild = !!scripts.build;
+
+  if (hasTest) {
+    const probeTest = "boulder-probe.test.ts";
+    writeFileSync(
+      probeTest,
+      "import { test } from 'bun:test'; test('probe', () => {});",
+    );
+    const testRun = run(["bun", "test", probeTest]);
+    try {
+      unlinkSync(probeTest);
+    } catch {
+      // Cleanup failed but continue
+    }
+
+    if (testRun.exitCode !== 0) {
+      console.error("❌ Reflex Check: 'test' script exists but runner failed.");
+      console.error(`   -> Log: ${testRun.text}`);
+      process.exit(1);
+    }
+    console.log("✅ Reflex Check: Test script detected and runner is alive.");
+  } else if (hasBuild) {
+    console.log(
+      "⚠️ Reflex Check: No 'test' script, but 'build' script detected.",
+    );
+  } else {
+    console.error(
+      "❌ Reflex Check: Neither 'test' nor 'build' scripts found in package.json.",
+    );
+    console.error("   -> Sisyphus needs a way to verify his work.");
+    process.exit(1);
+  }
 }
 
-if (hasErrors) {
-  console.error(`\n${PREFIX.fail} Environment check failed`);
-  process.exit(1);
+// Check 5: ルールディレクトリとシンボリックリンク状態確認 (FR-6 関連)
+{
+  const rulesDir = join(process.cwd(), "rules");
+  if (existsSync(rulesDir)) {
+    console.log("✅ Rules Directory: found");
+  } else {
+    console.warn("⚠️ Rules Directory: 'rules' folder not found in root.");
+    warningsCount++;
+  }
+
+  const rulesTarget = join(process.cwd(), ".cursor", "rules");
+  let rulesStat: Stats | undefined;
+  try {
+    rulesStat = lstatSync(rulesTarget);
+  } catch {}
+
+  if (rulesStat) {
+    try {
+      if (rulesStat.isSymbolicLink()) {
+        const realPath = realpathSync(rulesTarget);
+        const expectedPath = join(homedir(), ".config", "boulder", "rules");
+        if (realPath === expectedPath) {
+          console.log(
+            `✅ Symlink Check: .cursor/rules/ → Boulder rules linked`,
+          );
+        } else {
+          console.warn(
+            `⚠️ Symlink Check: .cursor/rules/ points to unexpected location: ${realPath}`,
+          );
+          console.warn(`   -> Expected: ${expectedPath}`);
+          console.warn("   -> Run: boulder init --force");
+          warningsCount++;
+        }
+      } else {
+        console.log(
+          "⚠️ Symlink Check: .cursor/rules/ exists but is NOT a symlink.",
+        );
+        console.log("   -> Run: boulder init --force");
+        warningsCount++;
+      }
+    } catch {
+      console.log(
+        "⚠️ Symlink Check: Could not read .cursor/rules/ status (broken link?).",
+      );
+      console.log("   -> Run: boulder init --force");
+      warningsCount++;
+    }
+  } else {
+    console.log("⚠️ Symlink Check: .cursor/rules/ does not exist.");
+    console.log("   -> Run: boulder init");
+    warningsCount++;
+  }
+}
+
+if (warningsCount === 0) {
+  console.log("🪨 All Systems Green. Ready to Push.");
 } else {
-  console.log(`\n${PREFIX.ok} All checks passed!`);
-  process.exit(0);
+  console.log(
+    `⚠️ Doctor finished with ${warningsCount} warning(s). Check output above.`,
+  );
 }

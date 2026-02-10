@@ -1,0 +1,9 @@
+{
+  "name": "Project Boulder",
+  "image": "oven/bun:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "bun install",
+  "remoteUser": "bun"
+}
