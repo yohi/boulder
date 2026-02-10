@@ -32,12 +32,10 @@ Claude Code は以下のコマンドを自動的に認識し、必要に応じ�
 - **Git 操作**: コミットメッセージは日本語で、変更内容を簡潔に記述してください。
 
 ## ルールの参照 (アダプター)
-もし `.cursor/rules/*.mdc` や `.cursorrules` が存在する場合、以下のように参照してコンテキストに追加できます。
-(注: 現在のディレクトリには存在しませんが、標準的な Boulder プロジェクトでは以下が推奨されます)
+もし `rules/*.mdc` が存在する場合、以下のように参照してコンテキストに追加できます。
 
-- @.cursorrules
-- @.cursor/rules/tech-stack.mdc
-- @.cursor/rules/workflow.mdc
+- @rules/boulder-sisyphus.mdc
+- @rules/boulder-tool-ast-grep.mdc
 
 ## メモリバンクの運用
 タスクの開始前と終了後に、プロジェクトの状態を同期するために以下のファイルを活用してください。
