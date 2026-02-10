@@ -15,7 +15,7 @@ let hasErrors = false;
 try {
   const bunVersion = Bun.version;
   console.log(`✅ Bun: ${bunVersion}`);
-} catch (e) {
+} catch (_e) {
   console.error("❌ Bun runtime check failed");
   hasErrors = true;
 }
@@ -28,15 +28,15 @@ try {
     throw new Error("Biome version check failed");
   }
   console.log("✅ Biome: installed");
-} catch (e) {
+} catch (_e) {
   console.error("❌ Biome not found or broken");
   console.error("   → Try: bun add -D @biomejs/biome");
   hasErrors = true;
 }
 
 // package.jsonの存在確認
-import { existsSync } from "fs";
-import { join } from "path";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 if (!existsSync(join(process.cwd(), "package.json"))) {
   console.error("❌ package.json not found");
