@@ -35,7 +35,7 @@ try {
 }
 
 // package.jsonの存在確認
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync, readlinkSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 if (!existsSync(join(process.cwd(), "package.json"))) {
@@ -50,6 +50,57 @@ if (!existsSync(join(process.cwd(), "biome.json"))) {
   console.warn("⚠️  biome.json not found (recommended)");
 } else {
   console.log("✅ biome.json: found");
+}
+
+/** @returns true if any symlink check failed */
+function verifySymlinkState(paths: string[]): boolean {
+  let failed = false;
+  for (const p of paths) {
+    const fullPath = join(process.cwd(), p);
+    if (!existsSync(fullPath) && !lstatExists(fullPath)) {
+      // パスが存在しない場合はスキップ（他のチェックで検出済み）
+      continue;
+    }
+
+    try {
+      const lst = lstatSync(fullPath);
+      if (!lst.isSymbolicLink()) {
+        continue;
+      }
+
+      const target = readlinkSync(fullPath);
+      try {
+        statSync(fullPath); // リンク先の実体を確認（壊れたリンクなら例外）
+        console.log(`✅ Symlink: ${p} → ${target}`);
+      } catch (_targetErr) {
+        console.error(
+          `❌ Symlink broken: ${p} → ${target} (target does not exist)`,
+        );
+        failed = true;
+      }
+    } catch (err) {
+      console.error(
+        `❌ Symlink check failed: ${p} — ${err instanceof Error ? err.message : String(err)}`,
+      );
+      failed = true;
+    }
+  }
+  return failed;
+}
+
+// existsSync returns false for broken symlinks; lstat detects them
+function lstatExists(p: string): boolean {
+  try {
+    lstatSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const symlinkTargets = ["package.json", "biome.json", "bun", "biome"];
+if (verifySymlinkState(symlinkTargets)) {
+  hasErrors = true;
 }
 
 if (hasErrors) {
