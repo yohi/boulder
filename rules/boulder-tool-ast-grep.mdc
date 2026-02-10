@@ -17,24 +17,24 @@ Use this tool for structural code search instead of regex `grep`.
 
 ## Commands
 
-Use the following syntax in the terminal (Project Local Execution):
+Use the following syntax in the terminal (Global Execution):
 
 ```bash
 # Pattern Search
-bun run oh-my-opencode ast-grep --pattern "class $NAME { $$$ }" --json
+sg --pattern "class $NAME { $$$ }" --json
 
 # API Usage Search
-bun run oh-my-opencode ast-grep --pattern "console.log($$$)" --json
+sg --pattern "console.log($$$)" --json
 ```
 
 ## Troubleshooting (Self-Healing)
 
 ### 1. General Failure
 
-If execution fails, verify that `oh-my-opencode` is installed in the project:
+If execution fails, verify that `oh-my-opencode` is installed globally:
 
 ```bash
-bun add -D oh-my-opencode
+bun install -g oh-my-opencode
 ```
 
 ### 2. Windows / Binary Issues
