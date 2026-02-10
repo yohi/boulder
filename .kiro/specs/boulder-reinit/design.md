@@ -226,7 +226,7 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 
 ```json
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "organizeImports": { "enabled": true },
   "linter": {
     "enabled": true,
@@ -263,11 +263,10 @@ docker run -it --rm -v $(pwd):/workspace -w /workspace oven/bun:latest /bin/bash
 | スクリプト | コマンド | 要件マッピング |
 |-----------|---------|---------------|
 | `test` | `bun test` | FR-3.1 |
-| `build` | `bun build ./src/index.ts --outdir ./dist` | FR-3.1 |
 | `lint` | `biome lint .` | FR-2.3 |
 | `format` | `biome format --write .` | FR-2.4 |
 | `check` | `biome check --write .` | FR-2.5 |
-| `doctor` | `bun run scripts/boulder-doctor.ts` | FR-4.1 |
+| `doctor` | `bun run ~/.config/boulder/scripts/boulder-doctor.ts` | FR-4.1 |
 
 ---
 
