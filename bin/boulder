@@ -1,17 +1,16 @@
 #!/usr/bin/env bun
 import { join } from "path";
 import { homedir } from "os";
+import { existsSync } from "fs";
 
-const BOULDER_HOME = join(homedir(), ".config", "boulder");
+const isDev = existsSync(join(process.cwd(), "scripts", "boulder-init.ts"));
+const BOULDER_HOME = isDev ? process.cwd() : join(homedir(), ".config", "boulder");
 const command = process.argv[2];
 const args = process.argv.slice(3);
 
 (async () => {
   switch (command) {
     case "init": {
-      if (args.includes("--force")) {
-        process.argv = [...process.argv.slice(0, 2), "--force"];
-      }
       await import(join(BOULDER_HOME, "scripts", "boulder-init.ts"));
       break;
     }
