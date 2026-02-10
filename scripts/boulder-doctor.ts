@@ -13,6 +13,8 @@ import { join } from "node:path";
 console.log("🪨 Project Boulder Doctor Checking...");
 console.log(`✅ Bun Version: ${Bun.version}`);
 
+let warningsCount = 0;
+
 const run = (cmd: string[], cwd = process.cwd()) => {
   try {
     const p = Bun.spawnSync(cmd, {
@@ -50,6 +52,7 @@ const run = (cmd: string[], cwd = process.cwd()) => {
     console.error(`   -> Log: ${r.text}`);
     // 警告のみ、致命的ではない
     console.warn("   -> Warning: lint errors exist, but doctor continues.");
+    warningsCount++;
   } else {
     console.log("✅ Biome Lint: OK");
   }
@@ -130,6 +133,7 @@ const run = (cmd: string[], cwd = process.cwd()) => {
     console.log("✅ Rules Directory: found");
   } else {
     console.warn("⚠️ Rules Directory: 'rules' folder not found in root.");
+    warningsCount++;
   }
 
   const rulesTarget = join(process.cwd(), ".cursor", "rules");
@@ -153,23 +157,33 @@ const run = (cmd: string[], cwd = process.cwd()) => {
           );
           console.warn(`   -> Expected: ${expectedPath}`);
           console.warn("   -> Run: boulder init --force");
+          warningsCount++;
         }
       } else {
         console.log(
           "⚠️ Symlink Check: .cursor/rules/ exists but is NOT a symlink.",
         );
         console.log("   -> Run: boulder init --force");
+        warningsCount++;
       }
     } catch {
       console.log(
         "⚠️ Symlink Check: Could not read .cursor/rules/ status (broken link?).",
       );
       console.log("   -> Run: boulder init --force");
+      warningsCount++;
     }
   } else {
     console.log("⚠️ Symlink Check: .cursor/rules/ does not exist.");
     console.log("   -> Run: boulder init");
+    warningsCount++;
   }
 }
 
-console.log("🪨 All Systems Green. Ready to Push.");
+if (warningsCount === 0) {
+  console.log("🪨 All Systems Green. Ready to Push.");
+} else {
+  console.log(
+    `⚠️ Doctor finished with ${warningsCount} warning(s). Check output above.`,
+  );
+}
