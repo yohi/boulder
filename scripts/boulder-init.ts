@@ -66,23 +66,16 @@ async function main() {
 async function runDoctor() {
   console.log("\n🔍 Running boulder doctor...\n");
   const doctorPath = join(BOULDER_HOME, "scripts", "boulder-doctor.ts");
+  const localDoctor = join(process.cwd(), "scripts", "boulder-doctor.ts");
 
-  if (!existsSync(doctorPath)) {
-    // ローカルの doctor を使用（開発リポジトリ内）
-    const localDoctor = join(process.cwd(), "scripts", "boulder-doctor.ts");
-    if (existsSync(localDoctor)) {
-      const doctor = Bun.spawn(["bun", "run", localDoctor]);
-      const exitCode = await doctor.exited;
-      if (exitCode !== 0) {
-        throw new Error(`boulder doctor failed with exit code ${exitCode}`);
-      }
-      return;
-    }
+  const targetPath = existsSync(doctorPath) ? doctorPath : localDoctor;
+
+  if (!existsSync(targetPath)) {
     console.warn("⚠️ boulder-doctor.ts not found. Skipping health check.");
     return;
   }
 
-  const doctor = Bun.spawn(["bun", "run", doctorPath]);
+  const doctor = Bun.spawn(["bun", "run", targetPath]);
   const exitCode = await doctor.exited;
   if (exitCode !== 0) {
     throw new Error(`boulder doctor failed with exit code ${exitCode}`);
