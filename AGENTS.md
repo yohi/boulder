@@ -12,6 +12,10 @@ You **MUST** adhere to this loop for every modification.
 2.  **Act**: Modify the code.
 3.  **Verify (Critical)**:
     - **IMMEDIATELY** after changes, run verification commands.
+    - **MUST RUN** the following immediately after changes (in this order):
+      1. `bun run check` (Biome lint + format)
+      2. `bun test` (if tests exist)
+      3. `bun run build` (to check compilation)
     - **SHOW EVIDENCE**: Output the actual terminal logs.
     - **Format**:
       ```text
@@ -36,7 +40,7 @@ You **MUST** adhere to this loop for every modification.
 - **Sanity Check**: `bun test boulder-sanity.test.ts`
 
 ### Search Tools
-- **AST Grep**: Use `sg` or `bun run oh-my-opencode ast-grep` for structural search.
+- **AST Grep**: Use `sg` for structural search (requires global install: `bun install -g oh-my-opencode`).
   - Pattern: `sg --pattern "class $NAME { $$$ }" --json`
 
 ## 3. Code Style & Conventions
